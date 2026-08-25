@@ -44,13 +44,10 @@ Based on: [DAX Tutorial](https://www.youtube.com/watch?v=KzGmpyHl-K4)
 **Example outputs:**
  
 KPI cards with trend sparkline and period comparison:
- 
-![KPI cards with previous month and P2M comparison](kpi-cards-example.png)
- 
-Monthly detail table with year-over-year variation and quarter comparison:
- 
-![Monthly variation table with year slicer](monthly-variation-example.png)
- 
+
+![KPI cards with previous month and P2M comparison]([(https://i.postimg.cc/yNkmDT0P/kpi-cards-example-1.png))
+
+![Monthly variation table with year slicer](https://i.postimg.cc/cxGyMk5Q/monthly-variation-example.png?dl=1)
 ## 🛠️ What I Did
  
 - Followed the tutorial to build a foundation in core DAX syntax and logic
