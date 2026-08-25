@@ -1,5 +1,6 @@
 
 
+Readme · MD
 # DAX Learning Path – From Basics to Advanced
  
 This repository documents my learning journey through DAX (Data Analysis 
@@ -29,8 +30,8 @@ Based on: [DAX Tutorial](https://www.youtube.com/watch?v=KzGmpyHl-K4)
 - **SWITCH(TRUE(), ...)** – multi-condition logic for building dynamic KPI 
   indicators
 - **UNICHAR** – generating symbols (▲ ▼ ● ★ ✓) for visual KPI trend indicators 
-  on cards, combined with SWITCH(TRUE()) to show direction of change 
-  (e.g., delay increasing vs. decreasing month-over-month)
+  on cards, combined with conditional logic to show direction of change 
+  (e.g., value increasing vs. decreasing month-over-month)
 ### Time Intelligence
 - **Previous month / P2M (period-to-period) comparisons** – comparing 
   current values against the prior month using DATEADD/PREVIOUSMONTH-style logic
@@ -53,47 +54,56 @@ Monthly detail table with year-over-year variation and quarter comparison:
  
 ## 💻 Code Examples
  
-### Ranking with ADDCOLUMNS + CALCULATE + RANKX
+### Conditional Count with CALCULATE + FILTER
 ```dax
-Rank Measure = 
-VAR RankTable =
-    ADDCOLUMNS(
-        ALL(Table[Category]),
-        "@Value", CALCULATE([YourMeasure])
-    )
-RETURN
-    RANKX(RankTable, [@Value], , DESC)
-```
-Builds a virtual table with an extension column, then ranks over it — used to 
-rank managers/categories by a calculated measure rather than a raw column.
- 
-### TOPN (replicating Power BI's "Top N" filter in DAX)
-```dax
-Top Month Value = 
+Office Operations Count = 
 CALCULATE(
-    [YourMeasure],
-    TOPN(1, ALL(DateTable[MonthName]), [YourMeasure], DESC)
+    COUNTROWS(TGlobal),
+    FILTER(
+        TGlobal,
+        TGlobal[articles] = "bureau"
+    )
 )
 ```
-Walks the table, keeps only the top N rows ranked by the given expression, 
-then CALCULATE restricts the result to just those rows.
+Counts rows in a table where a specific condition on a column is met — a 
+core filter-context pattern used throughout the KPI cards.
  
-### KPI Trend Indicator with SWITCH(TRUE()) + UNICHAR
+### AVERAGEX with Row Context via ADDCOLUMNS + SUMMARIZE
 ```dax
-Delay Trend Icon = 
-VAR CurrentDelay = [Avg Delay Days]
-VAR PreviousDelay = 
-    CALCULATE([Avg Delay Days], DATEADD(DateTable[Date], -1, MONTH))
-RETURN
-SWITCH(
-    TRUE(),
-    CurrentDelay > PreviousDelay, UNICHAR(9650),  -- ▲ increasing
-    CurrentDelay < PreviousDelay, UNICHAR(9660),  -- ▼ decreasing
-    UNICHAR(9654)                                  -- ▶ flat
+Average Gap by Category = 
+AVERAGEX(
+    ADDCOLUMNS(
+        SUMMARIZE(Projects, Projects[Category]),
+        "AvgGap", CALCULATE(
+            AVERAGEX(
+                Projects, 
+                Projects[PhysicalAdvancementPct] - Projects[ExpectedAdvancementPct]
+            )
+        )
+    ),
+    [AvgGap]
 )
 ```
-Compares current vs. previous month, returns an arrow symbol based on the 
-direction of change — used on KPI cards for at-a-glance trend visualization.
+Builds a summarized virtual table (one row per category) with a calculated 
+gap column, then averages that column across categories — a pattern for 
+comparing actual vs. expected progress at a grouped level.
+ 
+### KPI Trend Indicator with UNICHAR + Conditional Formatting
+```dax
+Trend Arrow = 
+VAR UpArrow = UNICHAR(9650)
+VAR DownArrow = UNICHAR(9660)
+VAR MonthGap = [Gap Between Months]
+RETURN
+IF(
+    MonthGap < 0,
+    FORMAT(ROUND(MonthGap, 0), "#,##0 ""DA""") & " " & DownArrow,
+    FORMAT(ROUND(MonthGap, 0), "#,##0 ""DA""") & " " & UpArrow
+)
+```
+Formats a value with its unit and appends an up/down arrow depending on 
+whether the month-over-month change is positive or negative — used on KPI 
+cards for an at-a-glance trend indicator.
  
 ## 🛠️ What I Did
  
@@ -101,8 +111,8 @@ direction of change — used on KPI cards for at-a-glance trend visualization.
 - Worked through real debugging challenges on advanced patterns 
   (ADDCOLUMNS + CALCULATE + RANKX), including troubleshooting environment/
   version-specific issues
-- Practiced writing KPI trend measures combining SWITCH(TRUE()) and UNICHAR 
-  to visually indicate performance direction on cards
+- Practiced writing KPI trend measures combining conditional logic and 
+  UNICHAR to visually indicate performance direction on cards
 - Applied these concepts toward my own use case: tracking performance metrics 
   and month-over-month trends for a project-monitoring dashboard
 ## 🎯 Why This Matters
@@ -115,5 +125,7 @@ ongoing move into data analytics with a civil engineering background.
 ## 🧰 Tools
 Power BI, DAX
  
+
+
 
 
